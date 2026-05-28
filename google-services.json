@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "473336509391",
+    "project_id": "dietmate-80b63",
+    "storage_bucket": "dietmate-80b63.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:473336509391:android:cafa7778b41dff808c18ba",
+        "android_client_info": {
+          "package_name": "com.dietdoc.dietmate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBLxHLzl3axYwbLrMYzt9r5qHAIRDA26g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,4 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
+import { useState } from "react";
 import {
   Dimensions,
   Image,
@@ -8,6 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useRouter } from "expo-router";
+import { useTheme } from "@/context/theme-context";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const H_PAD = 28;
@@ -55,11 +58,21 @@ const DIETS = [
 ];
 
 export default function DietSelection() {
+  const [selected, setSelected] = useState<string[]>([]);
+  const router = useRouter();
+  const { dark } = useTheme();
+  const c = dark ? darkColors : lightColors;
+
+  const toggle = (id: string) =>
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
+
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: c.bg }]}>
       <View style={styles.headerBg} />
       <Image source={require('@/assets/images/bannergrape.png')} style={styles.bannerImage} resizeMode="contain" />
-      <View style={styles.sheet} />
+      <View style={[styles.sheet, { backgroundColor: c.bg }]} />
 
       <Text style={styles.headerTitle}>Select your Diet</Text>
 
@@ -68,28 +81,36 @@ export default function DietSelection() {
         contentContainerStyle={styles.grid}
         showsVerticalScrollIndicator={false}
       >
-        {DIETS.map((diet) => (
-          <TouchableOpacity
-            key={diet.id}
-            style={styles.card}
-            activeOpacity={0.85}
-          >
-            <View style={styles.cardBg} />
-            <Image
-              source={diet.image}
-              style={styles.cardImage}
-              resizeMode="cover"
-            />
-            <LinearGradient
-              colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.16)"]}
-              style={styles.cardOverlay}
-            />
-          </TouchableOpacity>
-        ))}
+        {DIETS.map((diet) => {
+          const isSelected = selected.includes(diet.id);
+          return (
+            <TouchableOpacity
+              key={diet.id}
+              style={[styles.card, isSelected && styles.cardSelected, { backgroundColor: c.card }]}
+              onPress={() => toggle(diet.id)}
+              activeOpacity={0.85}
+            >
+              <View style={styles.cardBg} />
+              <Image
+                source={diet.image}
+                style={styles.cardImage}
+                resizeMode="cover"
+              />
+              <LinearGradient
+                colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.16)"]}
+                style={styles.cardOverlay}
+              />
+              {/* Selection indicator in top-right corner */}
+              <View style={[styles.checkCircle, isSelected && styles.checkCircleSelected]}>
+                {isSelected && <View style={styles.checkInner} />}
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
       <View style={styles.finalizeBtnWrapper}>
-        <TouchableOpacity activeOpacity={0.9}>
+        <TouchableOpacity activeOpacity={0.9} onPress={() => router.push('/grocerystore')}>
           <LinearGradient
             colors={["#3163E3", "#3264E4"]}
             start={{ x: 0, y: 0 }}
@@ -106,7 +127,7 @@ export default function DietSelection() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#FAFEFC" },
+  screen: { flex: 1 },
   headerBg: {
     position: "absolute",
     width: "100%",
@@ -126,7 +147,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 771,
     top: 142,
-    backgroundColor: "#FAFEFC",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
@@ -155,6 +175,10 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     overflow: "hidden",
   },
+  cardSelected: {
+    borderWidth: 3,
+    borderColor: '#3163E3',
+  },
   cardBg: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "#F3F5F9",
@@ -176,6 +200,29 @@ const styles = StyleSheet.create({
     height: CARD_HEIGHT * 0.62,
     borderRadius: 18,
   },
+  checkCircle: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: 'white',
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkCircleSelected: {
+    backgroundColor: '#3163E3',
+    borderColor: '#3163E3',
+  },
+  checkInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'white',
+  },
   finalizeBtnWrapper: { position: "absolute", bottom: 15, left: 47, right: 47 },
   finalizeBtn: {
     height: 65,
@@ -195,3 +242,6 @@ const styles = StyleSheet.create({
     transform: [{ rotate: "45deg" }],
   },
 });
+
+const lightColors = { bg: '#FAFEFC', card: '#FFFFFF' };
+const darkColors  = { bg: '#0D0D0D', card: '#1C1C1E' };
