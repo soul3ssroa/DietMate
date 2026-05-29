@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/context/theme-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const API_KEY = process.env.EXPO_PUBLIC_USDA_API_KEY;
 const BASE_URL = 'https://api.nal.usda.gov/fdc/v1';
@@ -18,6 +19,8 @@ type FoodItem = {
   fdcId: number;
   description: string;
   brandOwner?: string;
+  foodCategory?: string;
+  foodNutrients?: { nutrientName: string; value: number }[];
 };
 
 export default function GroceryStore() {
@@ -48,6 +51,11 @@ export default function GroceryStore() {
   const search = () => {
     const term = query.trim();
     fetchFoods(term);
+  };
+
+  const getCalories = (item: FoodItem) => {
+    const cal = item.foodNutrients?.find((n) => n.nutrientName === 'Energy');
+    return cal ? Math.round(cal.value) : null;
   };
 
   return (
@@ -84,14 +92,37 @@ export default function GroceryStore() {
         data={results}
         keyExtractor={(item) => String(item.fdcId)}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <View style={[styles.foodCard, { backgroundColor: c.card }]}>
-            <Text style={[styles.foodName, { color: c.text }]}>{item.description}</Text>
-            {!!item.brandOwner && (
-              <Text style={[styles.foodBrand, { color: c.subtext }]}>{item.brandOwner}</Text>
-            )}
-          </View>
-        )}
+        renderItem={({ item }) => {
+          const kcal = getCalories(item);
+          return (
+            <View style={[styles.foodCard, { backgroundColor: c.card }]}>
+              {/* Left thumbnail with calorie overlay */}
+              <View style={styles.thumbnail}>
+                <LinearGradient
+                  colors={['#3163E3', '#547FEF']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={styles.thumbnailGradient}
+                />
+                {kcal !== null && (
+                  <Text style={styles.kcalText}>{kcal}</Text>
+                )}
+                {kcal !== null && (
+                  <Text style={styles.kcalLabel}>kcal</Text>
+                )}
+              </View>
+              {/* Right content */}
+              <View style={styles.foodInfo}>
+                {!!item.foodCategory && (
+                  <Text style={styles.foodCategory}>{item.foodCategory}</Text>
+                )}
+                <Text style={[styles.foodName, { color: c.text }]} numberOfLines={2}>
+                  {item.description}
+                </Text>
+              </View>
+            </View>
+          );
+        }}
       />
     </View>
   );
@@ -135,14 +166,49 @@ const styles = StyleSheet.create({
   error: { textAlign: 'center', color: 'red', marginTop: 12 },
   list: { paddingHorizontal: 20, paddingBottom: 20 },
   foodCard: {
-    borderRadius: 14,
-    padding: 14,
+    flexDirection: 'row',
+    borderRadius: 18,
     marginBottom: 10,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    height: 99,
   },
-  foodName: { fontSize: 15, fontWeight: '600' },
-  foodBrand: { fontSize: 12, marginTop: 2 },
+  thumbnail: {
+    width: 65,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  thumbnailGradient: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 18,
+  },
+  kcalText: {
+    color: '#FAFEFC',
+    fontSize: 22,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  kcalLabel: {
+    color: '#FAFEFC',
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
+    opacity: 0.85,
+  },
+  foodInfo: {
+    flex: 1,
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+  },
+  foodCategory: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#3163E3',
+    marginBottom: 4,
+  },
+  foodName: { fontSize: 15, fontWeight: '500', color: '#384144' },
 });
